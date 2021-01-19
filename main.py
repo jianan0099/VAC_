@@ -2,30 +2,31 @@ import numpy as np
 import Utils
 import math
 import random
-import vac_sim_theo
+import theo
 from sklearn.metrics import r2_score
+from networkx.readwrite import json_graph
+import json
+import networkx as nx
 
-# hyper
-T = 40  # max_epoch
-iter = 1000
+with open('er_2000_20.json', 'r') as f:
+    G = json_graph.node_link_graph(json.load(f))
 
+T = 40
+iter = 1
 data_index = 6
-# ------------- 获取已存网路 -----------------
-G, adj, degree_list, distribution_list, node_num = Utils.all_net_info(data_index)
+node_num = 2000
+adj = np.array(nx.adjacency_matrix(G).todense())
 
 
-# ------------------ 对以下过程求平均 --------------------------
 def simu_single(vac_ava1, vac_ava2, T, beta1_U, beta1_P, beta2_U, beta2_P, gamma1, gamma2):
     health_states1 = np.zeros(node_num)
     health_states2 = np.zeros(node_num)
 
-    # 分配疫苗
     vac_nodes1 = random.sample(list(range(node_num)), vac_ava1)
     health_states1[vac_nodes1] = 2
     vac_nodes2 = random.sample(list(range(node_num)), vac_ava2)
     health_states2[vac_nodes2] = 2
 
-    # 初始化感染点
     init_infected_candidate1 = list(np.where(health_states1 == 0)[0])
     if len(init_infected_candidate1) > 0:
         init_infected_node1 = random.choice(init_infected_candidate1)
@@ -91,27 +92,27 @@ def simu_ave(iter, vac_ava1, vac_ava2, beta1_U, beta1_P, beta2_U, beta2_P, gamma
     S2_ALL = S2_ALL / iter
     R2_ALL = R2_ALL / iter
 
-    S1, I1, R1, S2, I2, R2 = vac_sim_theo.theoretical(vac_ava1, vac_ava2, T, beta1_U, beta1_P, beta2_U, beta2_P,
-                                                      gamma1, gamma2, adj, node_num)
+    S1, I1, R1, S2, I2, R2 = theo.theoretical(vac_ava1, vac_ava2, T, beta1_U, beta1_P, beta2_U, beta2_P,
+                                              gamma1, gamma2, adj, node_num)
 
     return S1_ALL[-1] + R1_ALL[0], S2_ALL[-1] + R2_ALL[0], S1[-1] + R1[0], S2[-1] + R2[0]
 
 
-alpha1 = 0.1  # 得2病对1病 传染概率得reduction
-beta1_U = 0.4  # 正常情况下的传染概率
-beta1_P = alpha1 * beta1_U  # 部分免疫下的传染概率
-gamma1 = 0.8  # recover
+alpha1 = 0.1
+beta1_U = 0.4
+beta1_P = alpha1 * beta1_U
+gamma1 = 0.8
 
-alpha2 = 0.1  # 得1病对2病 传染概率得reduction
-beta2_U = 0.5  # 正常情况下的传染概率
-beta2_P = alpha2 * beta2_U  # 部分免疫下的传染概率
-gamma2 = 0.6  # recover
+alpha2 = 0.1
+beta2_U = 0.5
+beta2_P = alpha2 * beta2_U
+gamma2 = 0.6
 
-# 疫苗数量
+
 vac_ava1 = math.floor(0.5 * node_num)
 vac_ava2 = math.floor(node_num * 0.5)
 
-# 改变疫苗2的数量
+
 S1_coff = []
 s1_coff = []
 S2_coff = []
@@ -120,8 +121,6 @@ s2_coff = []
 
 for coff in np.arange(0, 1.01, 0.02):
     vac_ava1 = math.floor(node_num * coff)
-
-    # 加上理论解
     S1, S2, s1, s2 = simu_ave(iter, vac_ava1, vac_ava2, beta1_U, beta1_P, beta2_U, beta2_P, gamma1, gamma2)
     S1_coff.append(S1)
     s1_coff.append(s1)

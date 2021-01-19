@@ -1,13 +1,7 @@
-# theoretical analysis markov 方式
-import networkx as nx
 import numpy as np
-import random
-import math
-import matplotlib.pyplot as plt
-import Utils
+
 
 def init_P1(vac_ava1, vac_ava2, node_num):
-    # P node_num * 9 初始 每层只有一个I 打第一种疫苗人数为 vac_ava1 打第二种疫苗人数为 vac_ava2
     P = np.zeros((node_num, 9))
     if vac_ava1 < node_num:
         x = np.array([1 - 1 / node_num - vac_ava1 / node_num, 1 / node_num, vac_ava1 / node_num])
@@ -25,9 +19,6 @@ def init_P1(vac_ava1, vac_ava2, node_num):
 
 
 def get_p_I(l, P):
-    """
-    RETURN array node_num * 1 每个点在 L 层 为 I 的概率
-    """
     if l == 1:
         q_I = P[:, 3] + P[:, 4] + P[:, 5]
 
@@ -37,7 +28,6 @@ def get_p_I(l, P):
 
 
 def get_q_l(l, P, U_or_P, beta1_U, beta1_P, beta2_U, beta2_P, adj, node_num):
-    # 计算 q l # 矩阵化 node_num * 1 第l层
     if U_or_P == 0:
         # U
         beta = beta1_U if 1 == l else beta2_U
@@ -47,7 +37,7 @@ def get_q_l(l, P, U_or_P, beta1_U, beta1_P, beta2_U, beta2_P, adj, node_num):
     q_I = get_p_I(l, P)
     p_l_temp = 1 - np.multiply(adj, np.tile(q_I, (node_num, 1))) * beta
 
-    p_l = np.prod(p_l_temp, axis=1)  # 每行积
+    p_l = np.prod(p_l_temp, axis=1)
     return p_l
 
 
@@ -67,7 +57,6 @@ def theoretical(vac_ava1, vac_ava2, T, beta1_U, beta1_P, beta2_U, beta2_P, gamma
     I2.append(sum(P[:, 1] + P[:, 4] + P[:, 7]) / node_num)
     R2.append(sum(P[:, 2] + P[:, 5] + P[:, 8]) / node_num)
     for t in range(T):
-        # 循环一下过程
         q1U = get_q_l(1, P, 0, beta1_U, beta1_P, beta2_U, beta2_P, adj, node_num)
         q1P = get_q_l(1, P, 1, beta1_U, beta1_P, beta2_U, beta2_P, adj, node_num)
         q2U = get_q_l(2, P, 0, beta1_U, beta1_P, beta2_U, beta2_P, adj, node_num)
@@ -105,5 +94,6 @@ def theoretical(vac_ava1, vac_ava2, T, beta1_U, beta1_P, beta2_U, beta2_P, gamma
         R2.append(sum(P[:, 2] + P[:, 5] + P[:, 8]) / node_num)
 
     return S1, I1, R1, S2, I2, R2
+
 
 
