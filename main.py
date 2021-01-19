@@ -12,8 +12,7 @@ with open('er_2000_20.json', 'r') as f:
     G = json_graph.node_link_graph(json.load(f))
 
 T = 40
-iter = 1
-data_index = 6
+iter = 1000
 node_num = 2000
 adj = np.array(nx.adjacency_matrix(G).todense())
 
