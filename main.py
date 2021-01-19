@@ -8,6 +8,7 @@ from networkx.readwrite import json_graph
 import json
 import networkx as nx
 
+
 with open('er_2000_20.json', 'r') as f:
     G = json_graph.node_link_graph(json.load(f))
 
